@@ -57,19 +57,7 @@ export class VllmService {
   async chat(request: ConversationRequest): Promise<ConversationResponse> {
     const messages = this.buildOpenAIMessages(request);
     const body = this.buildBody(messages, false);
-
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      await this.throwHttpError(response);
-    }
+    const response = await this.fetchCompletion(body);
 
     const data = (await response.json()) as {
       choices: Array<{ message: { content: string }; finish_reason: string }>;
@@ -91,20 +79,7 @@ export class VllmService {
 
     while (true) {
       const body = this.buildBody(messages, true);
-
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        await this.throwHttpError(response);
-      }
-
+      const response = await this.fetchCompletion(body);
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -283,6 +258,23 @@ export class VllmService {
     }
 
     return body;
+  }
+
+  private async fetchCompletion(body: Record<string, unknown>): Promise<Response> {
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      await this.throwHttpError(response);
+    }
+
+    return response;
   }
 
   private async throwHttpError(response: Response): Promise<never> {
