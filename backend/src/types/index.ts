@@ -1,7 +1,7 @@
 // src/types/index.ts
 
 export interface Message {
-  role: “user” | “assistant”;
+  role: "user" | "assistant";
   content: ContentBlock[];
 }
 
@@ -56,4 +56,28 @@ export interface StreamEvent {
     outputTokens: number;
   };
   error?: string;
+}
+
+export interface Session {
+  id: string;
+  title: string;
+  createdAt: Date;
+  updatedAt: Date;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CreateSessionRequest {
+  id?: string;
+  title?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UpdateSessionRequest {
+  title?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MessageHistoryOptions {
+  maxMessages?: number;
+  maxTokens?: number;
 }
