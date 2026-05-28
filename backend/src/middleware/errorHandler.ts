@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 
-interface HttpError extends Error {
+export interface ApiError extends Error {
   status?: number;
   statusCode?: number;
   code?: string;
 }
 
 export function errorHandler(
-  err: HttpError,
+  err: ApiError,
   req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -18,10 +18,9 @@ export function errorHandler(
   console.error(`[ERROR] ${req.method} ${req.url}`, err);
 
   res.status(statusCode).json({
-    success: false,
     error: {
       message: err.message || 'Internal server error',
-      code: err.code ?? 'INTERNAL_ERROR',
+      code: err.code,
     },
   });
 }
