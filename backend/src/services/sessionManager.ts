@@ -47,3 +47,5 @@ export class SessionManager {
     return this.sessions.delete(id);
   }
 }
+
+export const sessionManager = new SessionManager();
