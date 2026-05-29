@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "../../types";
 import { MessageItem } from "./MessageItem";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MessageListProps {
 	messages: Message[];
@@ -23,14 +24,16 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
-			{messages.map((message) => (
-				<MessageItem key={message.id} message={message} />
-			))}
-			{isLoading && (
-				<div className="text-gray-400">응답 생성 중...</div>
-			)}
-			<div ref={bottomRef} />
-		</div>
+		<ScrollArea className="flex-1">
+			<div className="flex flex-col gap-3 p-4">
+				{messages.map((message) => (
+					<MessageItem key={message.id} message={message} />
+				))}
+				{isLoading && (
+					<div className="text-gray-400">응답 생성 중...</div>
+				)}
+				<div ref={bottomRef} />
+			</div>
+		</ScrollArea>
 	);
 }

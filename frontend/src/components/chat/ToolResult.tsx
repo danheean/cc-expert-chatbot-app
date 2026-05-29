@@ -1,4 +1,5 @@
 import type { ToolCall } from "../../types";
+import { Badge } from "@/components/ui/badge";
 
 const TOOL_CONFIG: Record<string, { label: string; icon: string }> = {
   get_weather: { label: "날씨 조회", icon: "🌤" },
@@ -25,13 +26,19 @@ export function ToolResult({ toolCall }: ToolResultProps) {
         )}
         <span className="font-medium text-gray-700">{label}</span>
         {toolCall.status === "running" && (
-          <span className="ml-auto animate-pulse text-blue-500">실행 중...</span>
+          <Badge variant="secondary" className="ml-auto animate-pulse text-blue-500">
+            실행 중...
+          </Badge>
         )}
         {(toolCall.status === "success" || toolCall.status === "completed") && (
-          <span className="ml-auto text-green-600">완료</span>
+          <Badge variant="outline" className="ml-auto border-green-200 text-green-600">
+            완료
+          </Badge>
         )}
         {toolCall.status === "error" && (
-          <span className="ml-auto text-red-500">실패</span>
+          <Badge variant="destructive" className="ml-auto">
+            실패
+          </Badge>
         )}
       </div>
 

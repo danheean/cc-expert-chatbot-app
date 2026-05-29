@@ -4,11 +4,22 @@
 vLLM gemma모델을 사용하는 웹 기반 AI 챗봇 애플리케이션
 
 ## 기술 스택
-- Frontend: React + TypeScript + Vite + Tailwind CSS
+- Frontend: React + TypeScript + Vite + Tailwind CSS + shadcn/ui
 - Backend: Node.js + Express + TypeScript
 - AI: vLLM(https://vllm.repia.com/, key:aimates, google/gemma-3-12b-it)
 - API: Converse API with ConverseStream
 - Streaming: Server-Sent Events (SSE)
+
+## 디자인 시스템
+- 디자인 시스템 명세: `docs/DESIGN-FIGMA.md`
+- UI 컴포넌트: shadcn/ui (Tailwind CSS v3 기반)
+- 폰트: Inter (figmaSans 대체), JetBrains Mono (figmaMono 대체)
+- 색상 토큰: `frontend/tailwind.config.js` 및 `frontend/src/index.css` CSS 변수 참조
+- 핵심 규칙:
+  - 모든 버튼은 pill 형태 (`rounded-pill` = 50px) 사용
+  - primary 버튼: 검정 배경 + 흰 텍스트
+  - 컬러블록 섹션: `block-lime`, `block-lilac` 등 파스텔 팔레트 사용
+  - 새 UI 컴포넌트 작성 시 파일 상단에 `docs/DESIGN-FIGMA.md` 참조 주석 기재
 
 ## 프로젝트 구조
 chatbot/

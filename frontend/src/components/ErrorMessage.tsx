@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 interface ErrorMessageProps {
 	message: string;
 	onRetry?: () => void;
@@ -28,22 +30,23 @@ export function ErrorMessage({ message, onRetry, onDismiss }: ErrorMessageProps)
 			<p className="flex-1 text-sm">{resolveMessage(message)}</p>
 			<div className="flex shrink-0 gap-2">
 				{onRetry && (
-					<button
-						type="button"
+					<Button
+						variant="destructive"
+						size="sm"
 						onClick={onRetry}
-						className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
 					>
 						다시 시도
-					</button>
+					</Button>
 				)}
 				{onDismiss && (
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="sm"
 						onClick={onDismiss}
-						className="rounded bg-red-100 px-3 py-1 text-xs text-red-700 hover:bg-red-200"
+						className="text-red-700 hover:text-red-800"
 					>
 						닫기
-					</button>
+					</Button>
 				)}
 			</div>
 		</div>

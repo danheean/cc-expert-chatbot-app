@@ -1,5 +1,6 @@
 import type { Message, ToolCall } from "../../types";
 import { ToolResult } from "./ToolResult";
+import { cn } from "@/lib/utils";
 
 interface MessageItemProps {
 	message: Message;
@@ -9,9 +10,9 @@ export function MessageItem({ message }: MessageItemProps) {
 	return (
 		<article>
 			<div
-				className={
-					message.role === "user" ? "bg-primary" : "bg-secondary"
-				}
+				className={cn(
+					message.role === "user" ? "bg-primary" : "bg-secondary",
+				)}
 			>
 				{message.content}
 			</div>
