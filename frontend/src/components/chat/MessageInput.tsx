@@ -7,6 +7,7 @@
 import { useState, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { SendHorizontal } from "lucide-react";
 
 interface MessageInputProps {
   onSend: (message: string) => void;
@@ -41,8 +42,9 @@ export function MessageInput({ onSend, isLoading = false }: MessageInputProps) {
         disabled={isLoading}
         className="flex-1 resize-none"
       />
-      <Button onClick={handleSend} disabled={isLoading}>
-        전송
+      <Button onClick={handleSend} disabled={isLoading} aria-label="전송">
+        <SendHorizontal className="h-4 w-4" />
+        <span className="sr-only">전송</span>
       </Button>
     </div>
   );

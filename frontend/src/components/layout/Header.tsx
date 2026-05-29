@@ -58,7 +58,10 @@ export function Header({ onMenuClick, sessionTitle, theme = "system", onCycleThe
 			</Button>
 			<span className="font-semibold">AI 챗봇</span>
 			{sessionTitle && (
-				<span className="truncate text-sm text-muted-foreground">{sessionTitle}</span>
+				<>
+					<span className="text-muted-foreground" aria-hidden>·</span>
+					<span className="truncate text-sm text-muted-foreground">{sessionTitle}</span>
+				</>
 			)}
 			<div className="ml-auto">
 				<Button

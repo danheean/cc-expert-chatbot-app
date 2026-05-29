@@ -74,5 +74,22 @@ export function useSession() {
 		if (session) setCurrentSession(session);
 	};
 
-	return { sessions, currentSession, createSession, deleteSession, selectSession };
+	const renameSession = (id: string, title: string) => {
+		const trimmed = title.trim();
+		if (!trimmed) return;
+		const updatedAt = new Date();
+		setSessions((prev) =>
+			prev.map((s) => (s.id === id ? { ...s, title: trimmed, updatedAt } : s)),
+		);
+		setCurrentSession((prev) =>
+			prev?.id === id ? { ...prev, title: trimmed, updatedAt } : prev,
+		);
+		fetch(`/api/sessions/${id}`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ title: trimmed }),
+		}).catch(() => {});
+	};
+
+	return { sessions, currentSession, createSession, deleteSession, selectSession, renameSession };
 }

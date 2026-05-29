@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { MessageList } from "../chat/MessageList";
 import { MessageInput } from "../chat/MessageInput";
 import { ErrorMessage } from "../ErrorMessage";
+import { cn } from "@/lib/utils";
 
 interface LayoutProps {
 	sessions: Session[];
@@ -16,6 +17,7 @@ interface LayoutProps {
 	onSelectSession: (id: string) => void;
 	onNewChat: () => void;
 	onDeleteSession: (id: string) => void;
+	onRenameSession: (id: string, title: string) => void;
 	theme?: "light" | "dark";
 	onToggleTheme?: () => void;
 }
@@ -30,10 +32,12 @@ export function Layout({
 	onSelectSession,
 	onNewChat,
 	onDeleteSession,
+	onRenameSession,
 	theme,
 	onToggleTheme,
 }: LayoutProps) {
-	const [sidebarOpen, setSidebarOpen] = useState(false);
+	// PC에서는 기본적으로 사이드바 열림
+	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [errorDismissed, setErrorDismissed] = useState(false);
 
 	useEffect(() => {
@@ -59,19 +63,24 @@ export function Layout({
 			/>
 
 			<div className="relative flex flex-1 overflow-hidden">
-				{/* Mobile overlay */}
+				{/* 모바일 오버레이 (데스크톱에서는 숨김) */}
 				{sidebarOpen && (
 					<div
-						className="absolute inset-0 z-10 bg-black/30 md:hidden"
+						className="absolute inset-0 z-10 bg-black/40 md:hidden"
 						onClick={() => setSidebarOpen(false)}
 					/>
 				)}
 
-				{/* Sidebar */}
+				{/* 사이드바
+				    모바일: absolute 오버레이, translate로 슬라이드 인/아웃
+				    데스크톱: relative (레이아웃 공간 차지), 닫힐 때 hidden */}
 				<div
-					className={`absolute inset-y-0 left-0 z-20 transition-transform md:relative md:translate-x-0 ${
-						sidebarOpen ? "translate-x-0" : "-translate-x-full"
-					} md:block`}
+					className={cn(
+						"absolute inset-y-0 left-0 z-20 transition-transform duration-200",
+						sidebarOpen ? "translate-x-0" : "-translate-x-full",
+						"md:relative md:inset-auto md:z-auto md:translate-x-0",
+						!sidebarOpen && "md:hidden",
+					)}
 				>
 					<Sidebar
 						sessions={sessions}
@@ -85,10 +94,11 @@ export function Layout({
 							setSidebarOpen(false);
 						}}
 						onDeleteSession={onDeleteSession}
+						onRenameSession={onRenameSession}
 					/>
 				</div>
 
-				{/* Main chat area */}
+				{/* 메인 채팅 영역 */}
 				<div className="flex flex-1 flex-col overflow-hidden">
 					{error && !errorDismissed && (
 						<div className="shrink-0 p-3">

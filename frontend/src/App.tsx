@@ -6,7 +6,7 @@ import { useChat } from "./hooks/useChat";
 import { useTheme } from "./hooks/useTheme";
 
 function App() {
-  const { sessions, currentSession, createSession, selectSession, deleteSession } =
+  const { sessions, currentSession, createSession, selectSession, deleteSession, renameSession } =
     useSession();
   const { messages, isLoading, error, sendMessage: originalSendMessage } = useChat(
     currentSession?.id ?? "",
@@ -37,6 +37,7 @@ function App() {
         onSelectSession={selectSession}
         onNewChat={createSession}
         onDeleteSession={deleteSession}
+        onRenameSession={renameSession}
         theme={theme}
         onToggleTheme={cycleTheme}
       />
