@@ -49,7 +49,10 @@ export function Sidebar({
 	};
 
 	return (
-		<aside className="flex h-full w-64 flex-col border-r bg-background shadow-xl md:shadow-none">
+		<aside
+			className="flex h-full w-full flex-col border-r shadow-xl md:w-64 md:shadow-none"
+			style={{ backgroundColor: "hsl(var(--background))" }}
+		>
 			<div className="p-3">
 				<Button onClick={onNewChat} className="w-full gap-2">
 					<PenLine className="h-4 w-4" />

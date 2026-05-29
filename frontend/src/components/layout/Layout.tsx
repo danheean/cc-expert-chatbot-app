@@ -73,22 +73,14 @@ export function Layout({
 			/>
 
 			<div className="relative flex flex-1 overflow-hidden">
-				{/* 모바일 오버레이 (데스크톱에서는 숨김) */}
-				{sidebarOpen && (
-					<div
-						className="absolute inset-0 z-10 bg-black/40 md:hidden"
-						onClick={() => setSidebarOpen(false)}
-					/>
-				)}
-
 				{/* 사이드바
 				    모바일: absolute 오버레이, translate로 슬라이드 인/아웃
 				    데스크톱: relative (레이아웃 공간 차지), 닫힐 때 hidden */}
 				<div
 					className={cn(
-						"absolute inset-y-0 left-0 z-20 transition-transform duration-200",
+						"absolute inset-y-0 left-0 z-20 w-full transition-transform duration-200",
 						sidebarOpen ? "translate-x-0" : "-translate-x-full",
-						"md:relative md:inset-auto md:z-auto md:translate-x-0",
+						"md:relative md:inset-auto md:z-auto md:w-auto md:translate-x-0",
 						!sidebarOpen && "md:hidden",
 					)}
 				>
