@@ -1,4 +1,4 @@
-import { ToolCall } from "../../types";
+import type { ToolCall } from "../../types";
 
 const TOOL_CONFIG: Record<string, { label: string; icon: string }> = {
   get_weather: { label: "날씨 조회", icon: "🌤" },

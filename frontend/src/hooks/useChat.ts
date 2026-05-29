@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { streamChat, SSEEvent } from "../services/sse";
-import { Message, ToolCall } from "../types";
+import { streamChat } from "../services/sse";
+import type { SSEEvent } from "../services/sse";
+import type { Message, ToolCall } from "../types";
 
 interface BackendMessage {
   role: string;

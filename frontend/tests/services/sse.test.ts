@@ -1,4 +1,5 @@
-import { streamChat, SSEEvent } from "../../src/services/sse";
+import { streamChat } from "../../src/services/sse";
+import type { SSEEvent } from "../../src/services/sse";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;

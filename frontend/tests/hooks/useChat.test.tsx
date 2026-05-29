@@ -21,7 +21,7 @@ function mockFetchMessages(
 }
 
 // 초기 메시지 로드(useEffect)가 완료될 때까지 대기
-async function waitForLoad(result: { current: { messages: unknown[] } }) {
+async function waitForLoad(_result: { current: { messages: unknown[] } }) {
 	await waitFor(() => {
 		expect(mockFetch).toHaveBeenCalled();
 	});
@@ -45,7 +45,7 @@ describe("useChat 훅", () => {
 
 	it("sendMessage 호출 시 사용자 메시지를 추가한다", async () => {
 		(streamChat as any).mockImplementation(
-			async (sessionId: string, message: string, onEvent: any) => {
+			async (_sessionId: string, _message: string, onEvent: any) => {
 				onEvent({ type: "done" });
 			},
 		);
@@ -62,7 +62,7 @@ describe("useChat 훅", () => {
 
 	it("텍스트 이벤트로 어시스턴트 메시지를 업데이트한다", async () => {
 		(streamChat as any).mockImplementation(
-			async (sessionId: string, message: string, onEvent: any) => {
+			async (_sessionId: string, _message: string, onEvent: any) => {
 				onEvent({ type: "text", content: "Hi" });
 				onEvent({ type: "text", content: " there" });
 				onEvent({ type: "done" });
@@ -108,7 +108,7 @@ describe("useChat 훅", () => {
 
 	it("도구 이벤트를 처리한다", async () => {
 		(streamChat as any).mockImplementation(
-			async (sessionId: string, message: string, onEvent: any) => {
+			async (_sessionId: string, _message: string, onEvent: any) => {
 				onEvent({
 					type: "tool_start",
 					toolId: "tool-1",
@@ -139,7 +139,7 @@ describe("useChat 훅", () => {
 
 	it("에러를 처리한다", async () => {
 		(streamChat as any).mockImplementation(
-			async (sessionId: string, message: string, onEvent: any) => {
+			async (_sessionId: string, _message: string, onEvent: any) => {
 				onEvent({ type: "error", error: "Something went wrong" });
 			},
 		);
@@ -155,7 +155,7 @@ describe("useChat 훅", () => {
 
 	it("sessionId가 변경되면 상태를 초기화한다", async () => {
 		(streamChat as any).mockImplementation(
-			async (sessionId: string, message: string, onEvent: any) => {
+			async (_sessionId: string, _message: string, onEvent: any) => {
 				onEvent({ type: "text", content: "Response" });
 				onEvent({ type: "done" });
 			},
@@ -181,7 +181,7 @@ describe("useChat 훅", () => {
 
 	it("메시지를 초기화한다", async () => {
 		(streamChat as any).mockImplementation(
-			async (sessionId: string, message: string, onEvent: any) => {
+			async (_sessionId: string, _message: string, onEvent: any) => {
 				onEvent({ type: "text", content: "Hello" });
 				onEvent({ type: "done" });
 			},
