@@ -204,7 +204,7 @@ describe("useChat 훅", () => {
 
 	it("overrideSessionId를 제공하면 빈 sessionId를 무시하고 API를 호출한다", async () => {
 		(streamChat as any).mockImplementation(
-			async (sid: string, _msg: string, onEvent: any) => {
+			async (_sid: string, _msg: string, onEvent: any) => {
 				onEvent({ type: "done" });
 			},
 		);

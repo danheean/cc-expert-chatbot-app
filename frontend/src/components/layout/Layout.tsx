@@ -16,6 +16,8 @@ interface LayoutProps {
 	onSelectSession: (id: string) => void;
 	onNewChat: () => void;
 	onDeleteSession: (id: string) => void;
+	theme?: "light" | "dark";
+	onToggleTheme?: () => void;
 }
 
 export function Layout({
@@ -28,6 +30,8 @@ export function Layout({
 	onSelectSession,
 	onNewChat,
 	onDeleteSession,
+	theme: _theme,
+	onToggleTheme: _onToggleTheme,
 }: LayoutProps) {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [errorDismissed, setErrorDismissed] = useState(false);

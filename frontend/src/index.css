@@ -1,3 +1,89 @@
+/* Design system reference: docs/DESIGN-FIGMA.md
+   Figma marketing design language — monochrome core + pastel blocks + pill CTAs
+   Font substitutes: Inter (figmaSans), JetBrains Mono (figmaMono) */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* ── Figma Design Tokens → shadcn CSS variables ──────────────────────────
+     docs/DESIGN-FIGMA.md > Colors
+     Neutral base: primary = pure black, canvas = white
+     All values in HSL format (shadcn convention)                         */
+  :root {
+    --background: 0 0% 100%;           /* {colors.canvas}      white page bg   */
+    --foreground: 0 0% 0%;             /* {colors.ink}         pure black text  */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    /* {components.button-primary}: black bg + white text */
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+
+    /* {components.button-secondary}: off-white bg + black text */
+    --secondary: 0 0% 96%;             /* {colors.surface-soft} */
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 82%;                /* {colors.hairline}    1px borders      */
+    --input: 0 0% 82%;
+    --ring: 0 0% 0%;                   /* focus ring = black   */
+
+    /* {rounded.md} = 8px — base radius for inputs and cards */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 84%;
+  }
+
+  /* border-border @apply 는 Tailwind v3에서 @layer base 안에서 동작하지 않으므로 직접 CSS 변수 사용 */
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+  }
+}
