@@ -37,9 +37,18 @@ export function Layout({
 	theme,
 	onToggleTheme,
 }: LayoutProps) {
-	// PC에서는 기본적으로 사이드바 열림
-	const [sidebarOpen, setSidebarOpen] = useState(true);
+	const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
 	const [errorDismissed, setErrorDismissed] = useState(false);
+
+	useEffect(() => {
+		const handleResize = () => {
+			if (window.innerWidth < 768) {
+				setSidebarOpen(false);
+			}
+		};
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	useEffect(() => {
 		setErrorDismissed(false);
@@ -88,11 +97,11 @@ export function Layout({
 						currentSessionId={currentSession?.id}
 						onNewChat={() => {
 							onNewChat();
-							setSidebarOpen(false);
+							if (window.innerWidth < 768) setSidebarOpen(false);
 						}}
 						onSelectSession={(id) => {
 							onSelectSession(id);
-							setSidebarOpen(false);
+							if (window.innerWidth < 768) setSidebarOpen(false);
 						}}
 						onDeleteSession={onDeleteSession}
 						onRenameSession={onRenameSession}
