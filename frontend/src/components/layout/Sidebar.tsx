@@ -10,7 +10,7 @@ import { useState } from "react";
 import type { Session } from "../../types";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Pencil, X } from "lucide-react";
+import { Pencil, PenLine, X } from "lucide-react";
 
 interface SidebarProps {
 	sessions: Session[];
@@ -51,7 +51,8 @@ export function Sidebar({
 	return (
 		<aside className="flex h-full w-64 flex-col border-r bg-background shadow-xl md:shadow-none">
 			<div className="p-3">
-				<Button onClick={onNewChat} className="w-full">
+				<Button onClick={onNewChat} className="w-full gap-2">
+					<PenLine className="h-4 w-4" />
 					새 대화
 				</Button>
 			</div>

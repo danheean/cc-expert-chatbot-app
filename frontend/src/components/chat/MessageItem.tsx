@@ -11,12 +11,20 @@ export function MessageItem({ message }: MessageItemProps) {
 	const isUser = message.role === "user";
 
 	return (
-		<article className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}>
+		<article className={cn("flex flex-col gap-1", isUser ? "items-end" : "items-start")}>
+			<div className={cn("flex items-center gap-1.5", isUser && "flex-row-reverse")}>
+				<span className="text-base leading-none select-none" aria-hidden>
+					{isUser ? "🙂" : "🤖"}
+				</span>
+				<span className="text-xs font-medium text-muted-foreground">
+					{isUser ? "주레피" : "AI 어시스턴트"}
+				</span>
+			</div>
 			<div
 				className={cn(
-					"max-w-[80%] rounded-block px-4 py-2.5 text-sm",
+					"max-w-[75%] rounded-block px-4 py-2.5 text-sm",
 					isUser
-						? "bg-primary text-primary-foreground"
+						? "bg-[#FEE500] text-[#1a1a1a]"
 						: "bg-secondary text-secondary-foreground",
 				)}
 			>

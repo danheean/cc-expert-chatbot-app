@@ -13,11 +13,18 @@ export function useChat(sessionId: string) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  // true when sendMessage was called with a brand-new overrideSessionId so the
+  // sessionId-change effect should not wipe the in-flight messages.
+  const skipClearRef = useRef(false);
 
   useEffect(() => {
-    setMessages([]);
-    setIsLoading(false);
-    setError(null);
+    if (skipClearRef.current) {
+      skipClearRef.current = false;
+    } else {
+      setMessages([]);
+      setIsLoading(false);
+      setError(null);
+    }
 
     if (!sessionId) return;
 
@@ -48,6 +55,10 @@ export function useChat(sessionId: string) {
     async (message: string, overrideSessionId?: string) => {
       const effectiveSessionId = overrideSessionId ?? sessionId;
       if (!effectiveSessionId) return;
+
+      if (overrideSessionId) {
+        skipClearRef.current = true;
+      }
 
       abortControllerRef.current?.abort();
       const controller = new AbortController();
