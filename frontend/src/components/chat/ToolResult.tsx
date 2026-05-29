@@ -35,7 +35,7 @@ export function ToolResult({ toolCall }: ToolResultProps) {
         )}
       </div>
 
-      {toolCall.status === "success" && toolCall.result && (
+      {(toolCall.status === "success" || toolCall.status === "completed") && toolCall.result && (
         <p className="mt-1 text-gray-600">{toolCall.result}</p>
       )}
 
