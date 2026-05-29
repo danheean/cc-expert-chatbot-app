@@ -172,11 +172,10 @@ describe("VllmService", () => {
     it("스트리밍에서 tool use 이벤트를 처리한다", async () => {
       const mockTool = {
         definition: {
-          type: "function" as const,
-          function: {
+          toolSpec: {
             name: "get_current_time",
             description: "현재 시간 조회",
-            parameters: { type: "object" as const, properties: {} },
+            inputSchema: { json: { type: "object" as const, properties: {} } },
           },
         },
         execute: async () => "2026-02-23 15:30:00",
@@ -235,11 +234,10 @@ describe("VllmService", () => {
     it("orchestrator가 설정되면 tools를 포함한다", async () => {
       const mockTool = {
         definition: {
-          type: "function" as const,
-          function: {
+          toolSpec: {
             name: "test_tool",
             description: "테스트",
-            parameters: { type: "object" as const, properties: {} },
+            inputSchema: { json: { type: "object" as const, properties: {} } },
           },
         },
         execute: async () => "result",

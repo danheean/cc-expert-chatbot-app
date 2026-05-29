@@ -52,6 +52,9 @@ router.post('/', async (req: Request, res: Response) => {
         case 'tool_use_start':
           sendEvent('tool_start', { toolName: event.toolName, toolUseId: event.toolUseId });
           break;
+        case 'tool_result':
+          sendEvent('tool_result', { toolResult: event.toolResult });
+          break;
         case 'message_complete':
           if (assistantText) {
             messageHistory.add(sessionId, {

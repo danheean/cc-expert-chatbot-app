@@ -168,6 +168,7 @@ export class VllmService {
 
       if (finishReason === "tool_calls" && this.toolOrchestrator) {
         const assistantToolCalls: OpenAIToolCall[] = [];
+        const toolResults: Array<{ id: string; content: string }> = [];
 
         for (const [, tc] of toolCallMap) {
           assistantToolCalls.push({
@@ -176,28 +177,35 @@ export class VllmService {
             function: { name: tc.name, arguments: tc.args },
           });
 
-          let input: unknown;
+          let input: Record<string, unknown>;
           try {
-            input = JSON.parse(tc.args || "{}");
+            input = JSON.parse(tc.args || "{}") as Record<string, unknown>;
           } catch {
             input = {};
           }
 
-          const result = await this.toolOrchestrator.executeTool(tc.name, input);
-          yield { type: "tool_result", toolResult: String(result) };
-
-          // Add assistant message with tool_calls
-          messages.push({
-            role: "assistant",
-            content: null,
-            tool_calls: assistantToolCalls,
+          const toolResult = await this.toolOrchestrator.executeSingle({
+            toolUseId: tc.id,
+            name: tc.name,
+            input,
           });
+          yield { type: "tool_result", toolResult: toolResult.content };
+          toolResults.push({ id: tc.id, content: toolResult.content });
+        }
 
-          // Add tool result message
+        // Add assistant message with all tool calls (once, outside the loop)
+        messages.push({
+          role: "assistant",
+          content: null,
+          tool_calls: assistantToolCalls,
+        });
+
+        // Add each tool result message
+        for (const tr of toolResults) {
           messages.push({
             role: "tool",
-            content: String(result),
-            tool_call_id: tc.id,
+            content: tr.content,
+            tool_call_id: tr.id,
           });
         }
 
@@ -253,7 +261,14 @@ export class VllmService {
     }
 
     if (this.toolOrchestrator) {
-      body.tools = this.toolOrchestrator.getToolDefinitions();
+      body.tools = this.toolOrchestrator.getToolDefinitions().map((def) => ({
+        type: "function",
+        function: {
+          name: def.toolSpec.name,
+          description: def.toolSpec.description,
+          parameters: def.toolSpec.inputSchema.json,
+        },
+      }));
       body.tool_choice = "auto";
     }
 
