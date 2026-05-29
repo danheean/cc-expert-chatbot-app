@@ -4,7 +4,7 @@
 vLLM gemma모델을 사용하는 웹 기반 AI 챗봇 애플리케이션
 
 ## 기술 스택
-- Frontend: React + TypeScript + Vite
+- Frontend: React + TypeScript + Vite + Tailwind CSS
 - Backend: Node.js + Express + TypeScript
 - AI: vLLM(https://vllm.repia.com/, key:aimates, google/gemma-3-12b-it)
 - API: Converse API with ConverseStream
