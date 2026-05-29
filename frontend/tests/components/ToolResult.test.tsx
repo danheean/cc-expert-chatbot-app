@@ -39,6 +39,20 @@ describe("ToolResult 컴포넌트", () => {
 		expect(screen.getByText(/도구 실행에 실패했습니다/)).toBeDefined();
 	});
 
+	it("에러 상태에서 도구 결과가 있으면 실패 원인을 표시한다", () => {
+		render(
+			<ToolResult
+				toolCall={{
+					...baseToolCall,
+					status: "error",
+					result: "Error: City not found: 없는도시",
+				}}
+			/>,
+		);
+
+		expect(screen.getByText("Error: City not found: 없는도시")).toBeDefined();
+	});
+
 	it("미등록 도구에 폴백 아이콘을 렌더링한다", () => {
 		render(
 			<ToolResult
@@ -50,5 +64,18 @@ describe("ToolResult 컴포넌트", () => {
 			/>,
 		);
 		expect(screen.getByText("[?]")).toBeDefined();
+	});
+
+	it("시간 도구 이름을 읽기 쉬운 레이블로 렌더링한다", () => {
+		render(
+			<ToolResult
+				toolCall={{
+					...baseToolCall,
+					name: "get_current_time",
+					status: "success",
+				}}
+			/>,
+		);
+		expect(screen.getByText("현재 시간 확인")).toBeDefined();
 	});
 });

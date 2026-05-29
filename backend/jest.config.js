@@ -5,8 +5,8 @@ module.exports = {
   testMatch: ["**/tests/**/*.test.ts"],
   moduleFileExtensions: ["ts", "js"],
   transform: {
-    "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig.json" }],
-    "^.+\\.js$": ["ts-jest", { tsconfig: "tsconfig.json" }],
+    "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig.test.json" }],
+    "^.+\\.js$": ["ts-jest", { tsconfig: "tsconfig.test.json" }],
   },
   transformIgnorePatterns: ["node_modules/(?!uuid)"],
 };

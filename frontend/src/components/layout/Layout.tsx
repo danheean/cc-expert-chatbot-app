@@ -7,6 +7,7 @@ import { MessageInput } from "../chat/MessageInput";
 import { WelcomeScreen } from "../chat/WelcomeScreen";
 import { ErrorMessage } from "../ErrorMessage";
 import { cn } from "@/lib/utils";
+import type { Theme } from "@/hooks/useTheme";
 
 interface LayoutProps {
 	sessions: Session[];
@@ -19,7 +20,7 @@ interface LayoutProps {
 	onNewChat: () => void;
 	onDeleteSession: (id: string) => void;
 	onRenameSession: (id: string, title: string) => void;
-	theme?: "light" | "dark";
+	theme?: Theme;
 	onToggleTheme?: () => void;
 }
 

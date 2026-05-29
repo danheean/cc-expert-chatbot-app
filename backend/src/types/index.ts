@@ -51,6 +51,7 @@ export interface StreamEvent {
   toolName?: string;
   toolInput?: string;
   toolResult?: string;
+  toolStatus?: "success" | "error";
   usage?: {
     inputTokens: number;
     outputTokens: number;

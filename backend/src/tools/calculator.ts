@@ -24,7 +24,7 @@ function tokenize(expr: string): Token[] {
 	let i = 0;
 
 	while (i < expr.length) {
-		const ch = expr[i];
+		const ch = expr[i] ?? "";
 
 		if (/\s/.test(ch)) {
 			i++;
@@ -33,8 +33,8 @@ function tokenize(expr: string): Token[] {
 
 		if (/\d/.test(ch) || (ch === "." && /\d/.test(expr[i + 1] ?? ""))) {
 			let num = "";
-			while (i < expr.length && (/\d/.test(expr[i]) || expr[i] === ".")) {
-				num += expr[i++];
+			while (i < expr.length && (/\d/.test(expr[i] ?? "") || expr[i] === ".")) {
+				num += expr[i++] ?? "";
 			}
 			tokens.push({ type: "NUMBER", value: num });
 			continue;
@@ -42,8 +42,8 @@ function tokenize(expr: string): Token[] {
 
 		if (/[a-z]/i.test(ch)) {
 			let name = "";
-			while (i < expr.length && /[a-z]/i.test(expr[i])) {
-				name += expr[i++];
+			while (i < expr.length && /[a-z]/i.test(expr[i] ?? "")) {
+				name += expr[i++] ?? "";
 			}
 			if (name !== "sqrt") throw new Error(`Unknown function: ${name}`);
 			tokens.push({ type: "FUNC", value: name });
@@ -107,11 +107,11 @@ class Parser {
 	constructor(private readonly tokens: Token[]) {}
 
 	private peek(): Token {
-		return this.tokens[this.pos];
+		return this.tokens[this.pos]!;
 	}
 
 	private consume(): Token {
-		return this.tokens[this.pos++];
+		return this.tokens[this.pos++]!;
 	}
 
 	private expect(type: TokenType): Token {

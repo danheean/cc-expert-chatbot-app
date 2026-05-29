@@ -96,9 +96,11 @@ export function useChat(sessionId: string) {
                 ];
               });
             } else if (event.type === "tool_start") {
+              const toolId = event.toolId ?? event.toolUseId;
+              if (!toolId || !event.toolName) return;
               const toolCall: ToolCall = {
-                id: event.toolId!,
-                name: event.toolName!,
+                id: toolId,
+                name: event.toolName,
                 input: {},
                 status: "running",
               };
@@ -113,6 +115,8 @@ export function useChat(sessionId: string) {
                 ];
               });
             } else if (event.type === "tool_result") {
+              const toolId = event.toolId ?? event.toolUseId;
+              if (!toolId) return;
               setMessages((prev) => {
                 const last = prev[prev.length - 1];
                 return [
@@ -120,10 +124,12 @@ export function useChat(sessionId: string) {
                   {
                     ...last,
                     toolCalls: last.toolCalls?.map((tc) =>
-                      tc.id === event.toolId
+                      tc.id === toolId
                         ? {
                             ...tc,
-                            status: "success" as ToolCall["status"],
+                            status: (event.toolStatus === "error"
+                              ? "error"
+                              : "success") as ToolCall["status"],
                             result: event.toolResult,
                           }
                         : tc,

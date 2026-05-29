@@ -2,6 +2,7 @@ import type { ToolCall } from "../../types";
 import { Badge } from "@/components/ui/badge";
 
 const TOOL_CONFIG: Record<string, { label: string; icon: string }> = {
+  get_current_time: { label: "현재 시간 확인", icon: "🕒" },
   get_weather: { label: "날씨 조회", icon: "🌤" },
   web_search: { label: "웹 검색", icon: "🔍" },
   calculator: { label: "계산기", icon: "🔢" },
@@ -47,7 +48,9 @@ export function ToolResult({ toolCall }: ToolResultProps) {
       )}
 
       {toolCall.status === "error" && (
-        <p className="mt-1 text-destructive">도구 실행에 실패했습니다</p>
+        <p className="mt-1 text-destructive">
+          {toolCall.result ?? "도구 실행에 실패했습니다"}
+        </p>
       )}
     </div>
   );

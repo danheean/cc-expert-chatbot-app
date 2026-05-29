@@ -56,6 +56,23 @@ describe("스트리밍 채팅", () => {
 		);
 	});
 
+	it("백엔드 error 이벤트의 message 필드를 error로 파싱한다", async () => {
+		mockFetch.mockResolvedValueOnce({
+			ok: true,
+			body: createMockStream([
+				'event: error\ndata: {"message":"도구 호출이 너무 반복되어 응답을 중단했습니다."}\n\n',
+			]),
+		});
+
+		const events: SSEEvent[] = [];
+		await streamChat("session-1", "Hi", (e) => events.push(e));
+
+		expect(events[0]).toMatchObject({
+			type: "error",
+			error: "도구 호출이 너무 반복되어 응답을 중단했습니다.",
+		});
+	});
+
 	it("버퍼 경계를 넘는 청크 데이터를 처리한다", async () => {
 		const sseData = [
 			'event: text\ndata: {"text":',
@@ -69,5 +86,31 @@ describe("스트리밍 채팅", () => {
 		const events: SSEEvent[] = [];
 		await streamChat("session-1", "Hi", (e) => events.push(e));
 		expect(events[0].content).toBe("split");
+	});
+
+	it("백엔드 toolUseId를 프론트 toolId로 정규화한다", async () => {
+		const sseData = [
+			'event: tool_start\ndata: {"toolName":"calculator","toolUseId":"tool-1"}\n\n',
+			'event: tool_result\ndata: {"toolUseId":"tool-1","toolResult":"579","toolStatus":"success"}\n\n',
+		];
+		mockFetch.mockResolvedValueOnce({
+			ok: true,
+			body: createMockStream(sseData),
+		});
+
+		const events: SSEEvent[] = [];
+		await streamChat("session-1", "123 + 456을 계산해줘.", (e) => events.push(e));
+
+		expect(events[0]).toMatchObject({
+			type: "tool_start",
+			toolId: "tool-1",
+			toolName: "calculator",
+		});
+		expect(events[1]).toMatchObject({
+			type: "tool_result",
+			toolId: "tool-1",
+			toolResult: "579",
+			toolStatus: "success",
+		});
 	});
 });

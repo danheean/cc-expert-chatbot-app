@@ -2,8 +2,10 @@ export interface SSEEvent {
   type: "text" | "tool_start" | "tool_result" | "done" | "error";
   content?: string;
   toolId?: string;
+  toolUseId?: string;
   toolName?: string;
   toolResult?: string;
+  toolStatus?: "success" | "error";
   usage?: {
     inputTokens: number;
     outputTokens: number;
@@ -34,13 +36,20 @@ function parseSSEBlock(block: string): SSEEvent | null {
     const parsed = JSON.parse(data) as Record<string, unknown>;
     if (parsed.text !== undefined) event.content = parsed.text as string;
     if (parsed.toolId !== undefined) event.toolId = parsed.toolId as string;
+    if (parsed.toolUseId !== undefined) {
+      event.toolUseId = parsed.toolUseId as string;
+      event.toolId ??= event.toolUseId;
+    }
     if (parsed.toolName !== undefined)
       event.toolName = parsed.toolName as string;
     if (parsed.toolResult !== undefined)
       event.toolResult = parsed.toolResult as string;
+    if (parsed.toolStatus === "success" || parsed.toolStatus === "error")
+      event.toolStatus = parsed.toolStatus;
     if (parsed.usage !== undefined)
       event.usage = parsed.usage as SSEEvent["usage"];
     if (parsed.error !== undefined) event.error = parsed.error as string;
+    if (parsed.message !== undefined) event.error = parsed.message as string;
   } catch {
     // empty or invalid JSON — leave event fields unset
   }

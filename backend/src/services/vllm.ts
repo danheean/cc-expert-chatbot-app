@@ -1,4 +1,5 @@
 import type { ConversationRequest, ConversationResponse, Message, StreamEvent } from "../types";
+import { CITY_ALIASES } from "../tools/getWeather";
 import type { ToolOrchestrator } from "./toolOrchestrator";
 
 export class VllmServiceError extends Error {
@@ -16,7 +17,11 @@ interface VllmServiceOptions {
   baseUrl?: string;
   apiKey?: string;
   modelId?: string;
+  requestTimeoutMs?: number;
 }
+
+const MAX_TOOL_ROUNDTRIPS = 5;
+const DEFAULT_REQUEST_TIMEOUT_MS = 60_000;
 
 interface OpenAIMessage {
   role: string;
@@ -34,13 +39,25 @@ interface OpenAIToolCall {
   };
 }
 
+type StreamReadResult = Awaited<
+  ReturnType<ReadableStreamDefaultReader<Uint8Array>["read"]>
+>;
+
+interface ForcedToolCall {
+  toolUseId: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
 export class VllmService {
   private readonly baseUrl: string;
   private readonly apiKey: string;
   private readonly modelId: string;
+  private readonly requestTimeoutMs: number;
   private toolOrchestrator?: ToolOrchestrator;
 
   constructor(options: VllmServiceOptions = {}) {
+    const envTimeoutMs = Number(process.env.VLLM_REQUEST_TIMEOUT_MS);
     this.baseUrl =
       options.baseUrl ?? process.env.VLLM_BASE_URL ?? "http://localhost:8000";
     this.apiKey = options.apiKey ?? process.env.VLLM_API_KEY ?? "dummy";
@@ -48,6 +65,11 @@ export class VllmService {
       options.modelId ??
       process.env.VLLM_MODEL_ID ??
       "meta-llama/Llama-3.1-8B-Instruct";
+    this.requestTimeoutMs =
+      options.requestTimeoutMs ??
+      (Number.isFinite(envTimeoutMs) && envTimeoutMs > 0
+        ? envTimeoutMs
+        : DEFAULT_REQUEST_TIMEOUT_MS);
   }
 
   setToolOrchestrator(orchestrator: ToolOrchestrator): void {
@@ -64,9 +86,14 @@ export class VllmService {
       usage: { prompt_tokens: number; completion_tokens: number };
     };
 
+    const choice = data.choices[0];
+    if (!choice) {
+      throw new VllmServiceError("Empty response from vLLM", "EMPTY_RESPONSE", true);
+    }
+
     return {
-      content: [{ text: data.choices[0].message.content ?? "" }],
-      stopReason: data.choices[0].finish_reason,
+      content: [{ text: choice.message.content ?? "" }],
+      stopReason: choice.finish_reason,
       usage: {
         inputTokens: data.usage.prompt_tokens,
         outputTokens: data.usage.completion_tokens,
@@ -76,6 +103,35 @@ export class VllmService {
 
   async *chatStream(request: ConversationRequest): AsyncGenerator<StreamEvent> {
     const messages = this.buildOpenAIMessages(request);
+    const forcedToolCall = this.resolveForcedToolCall(request);
+
+    if (forcedToolCall && this.toolOrchestrator) {
+      yield {
+        type: "tool_use_start",
+        toolUseId: forcedToolCall.toolUseId,
+        toolName: forcedToolCall.name,
+      };
+
+      const toolResult = await this.toolOrchestrator.executeSingle(forcedToolCall);
+      yield {
+        type: "tool_result",
+        toolUseId: toolResult.toolUseId,
+        toolResult: toolResult.content,
+        toolStatus: toolResult.status ?? "success",
+      };
+
+      yield {
+        type: "text_delta",
+        text: this.formatForcedToolAnswer(forcedToolCall.name, toolResult.content),
+      };
+      yield {
+        type: "message_complete",
+        usage: { inputTokens: 0, outputTokens: 0 },
+      };
+      return;
+    }
+
+    let toolRoundTrips = 0;
 
     while (true) {
       const body = this.buildBody(messages, true);
@@ -91,7 +147,7 @@ export class VllmService {
       >();
 
       loop: while (true) {
-        const { done, value } = await reader.read();
+        const { done, value } = await this.readStreamChunk(reader);
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
@@ -145,15 +201,16 @@ export class VllmService {
           if (delta.tool_calls) {
             for (const tc of delta.tool_calls) {
               if (!toolCallMap.has(tc.index)) {
+                const toolUseId = tc.id ?? `tool-${tc.index}`;
                 toolCallMap.set(tc.index, {
-                  id: tc.id ?? "",
+                  id: toolUseId,
                   name: tc.function?.name ?? "",
                   args: "",
                 });
                 if (tc.function?.name) {
                   yield {
                     type: "tool_use_start",
-                    toolUseId: tc.id,
+                    toolUseId,
                     toolName: tc.function.name,
                   };
                 }
@@ -167,8 +224,20 @@ export class VllmService {
       }
 
       if (finishReason === "tool_calls" && this.toolOrchestrator) {
+        if (toolRoundTrips >= MAX_TOOL_ROUNDTRIPS) {
+          throw new VllmServiceError(
+            "도구 호출이 너무 반복되어 응답을 중단했습니다.",
+            "TOOL_LOOP_LIMIT",
+          );
+        }
+        toolRoundTrips += 1;
+
         const assistantToolCalls: OpenAIToolCall[] = [];
-        const toolResults: Array<{ id: string; content: string }> = [];
+        const pendingToolCalls: Array<{
+          toolUseId: string;
+          name: string;
+          input: Record<string, unknown>;
+        }> = [];
 
         for (const [, tc] of toolCallMap) {
           assistantToolCalls.push({
@@ -184,13 +253,21 @@ export class VllmService {
             input = {};
           }
 
-          const toolResult = await this.toolOrchestrator.executeSingle({
+          pendingToolCalls.push({
             toolUseId: tc.id,
             name: tc.name,
             input,
           });
-          yield { type: "tool_result", toolResult: toolResult.content };
-          toolResults.push({ id: tc.id, content: toolResult.content });
+        }
+
+        const toolResults = await this.toolOrchestrator.executeMultiple(pendingToolCalls);
+        for (const toolResult of toolResults) {
+          yield {
+            type: "tool_result",
+            toolUseId: toolResult.toolUseId,
+            toolResult: toolResult.content,
+            toolStatus: toolResult.status ?? "success",
+          };
         }
 
         // Add assistant message with all tool calls (once, outside the loop)
@@ -205,7 +282,7 @@ export class VllmService {
           messages.push({
             role: "tool",
             content: tr.content,
-            tool_call_id: tr.id,
+            tool_call_id: tr.toolUseId,
           });
         }
 
@@ -244,6 +321,80 @@ export class VllmService {
       .join("");
   }
 
+  private resolveForcedToolCall(request: ConversationRequest): ForcedToolCall | undefined {
+    const lastUserMessage = [...request.messages].reverse().find((msg) => msg.role === "user");
+    if (!lastUserMessage) return undefined;
+
+    const text = this.extractText(lastUserMessage);
+    const weatherCity = this.extractWeatherCity(text);
+    if (weatherCity) {
+      return {
+        toolUseId: "forced-get-weather",
+        name: "get_weather",
+        input: { city: weatherCity },
+      };
+    }
+
+    if (this.isCurrentTimeRequest(text)) {
+      return {
+        toolUseId: "forced-get-current-time",
+        name: "get_current_time",
+        input: { timezone: "Asia/Seoul" },
+      };
+    }
+
+    const expression = this.extractCalculationExpression(text);
+    if (expression) {
+      return {
+        toolUseId: "forced-calculator",
+        name: "calculator",
+        input: { expression },
+      };
+    }
+
+    return undefined;
+  }
+
+  private isCurrentTimeRequest(text: string): boolean {
+    return (
+      text.includes("get_current_time") ||
+      text.includes("Asia/Seoul") ||
+      /(?:현재|오늘|지금).*(?:날짜|시간)/.test(text) ||
+      /(?:날짜|시간).*(?:현재|오늘|지금)/.test(text)
+    );
+  }
+
+  private extractWeatherCity(text: string): string | undefined {
+    if (!text.includes("get_weather") && !text.includes("날씨")) return undefined;
+
+    for (const [source, city] of Object.entries(CITY_ALIASES)) {
+      if (text.includes(source) || text.toLowerCase().includes(city.toLowerCase())) {
+        return city;
+      }
+    }
+
+    return undefined;
+  }
+
+  private extractCalculationExpression(text: string): string | undefined {
+    if (!text.includes("계산") && !text.includes("calculator")) return undefined;
+    const expression = text.match(/[0-9+\-*/^().\s]+/)?.[0]?.trim();
+    return expression || undefined;
+  }
+
+  private formatForcedToolAnswer(toolName: string, toolResult: string): string {
+    if (toolName === "get_current_time") {
+      return `도구 결과 기준 현재 날짜와 시간은 ${toolResult}입니다.`;
+    }
+    if (toolName === "get_weather") {
+      return `도구 결과 기준 현재 날씨는 ${toolResult}입니다.`;
+    }
+    if (toolName === "calculator") {
+      return `도구 결과 기준 계산 결과는 ${toolResult}입니다.`;
+    }
+    return toolResult;
+  }
+
   private buildBody(
     messages: OpenAIMessage[],
     stream: boolean,
@@ -276,20 +427,53 @@ export class VllmService {
   }
 
   private async fetchCompletion(body: Record<string, unknown>): Promise<Response> {
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.requestTimeoutMs);
+    let response: Response;
+
+    try {
+      response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new VllmServiceError("VLLM_TIMEOUT", "VLLM_TIMEOUT", true);
+      }
+      throw error;
+    }
+    clearTimeout(timeout);
 
     if (!response.ok) {
       await this.throwHttpError(response);
     }
 
     return response;
+  }
+
+  private async readStreamChunk(
+    reader: ReadableStreamDefaultReader<Uint8Array>,
+  ): Promise<StreamReadResult> {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        reader.read(),
+        new Promise<StreamReadResult>((_, reject) => {
+          timeout = setTimeout(
+            () => reject(new VllmServiceError("VLLM_TIMEOUT", "VLLM_TIMEOUT", true)),
+            this.requestTimeoutMs,
+          );
+        }),
+      ]);
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
   }
 
   private async throwHttpError(response: Response): Promise<never> {

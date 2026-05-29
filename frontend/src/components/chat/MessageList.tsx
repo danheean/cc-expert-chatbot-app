@@ -26,10 +26,10 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
 					<MessageItem key={message.id} message={message} />
 				))}
 				{showTypingIndicator && (
-					<article className="flex flex-col items-start gap-1">
-						<div className="flex items-center gap-1.5">
+					<article className="flex flex-col items-start gap-2">
+						<div className="flex items-center gap-2">
 							<span className="text-base leading-none select-none" aria-hidden>🤖</span>
-							<span className="text-xs font-medium text-muted-foreground">AI 어시스턴트</span>
+							<span className="text-sm font-medium text-muted-foreground">AI 어시스턴트</span>
 						</div>
 						<div className="rounded-block bg-secondary px-4 py-3">
 							<span className="flex items-center gap-1" role="status" aria-label="응답 생성 중">

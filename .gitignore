@@ -8,3 +8,5 @@ build/
 .DS_Store
 coverage/
 .vite/
+.playwright-mcp/
+docs/memo.md

@@ -97,7 +97,7 @@ export function Sidebar({
 								)}
 
 								{editingId !== session.id && (
-									<>
+									<div className="flex items-center -space-x-1">
 										<Button
 											variant="ghost"
 											size="icon"
@@ -116,7 +116,7 @@ export function Sidebar({
 										>
 											<X className="h-4 w-4" />
 										</Button>
-									</>
+									</div>
 								)}
 							</div>
 						))

@@ -11,6 +11,18 @@ interface FetchResponse {
 
 type Fetcher = (url: string) => Promise<FetchResponse>;
 
+export const CITY_ALIASES: Record<string, string> = {
+	서울: "Seoul",
+	부산: "Busan",
+	인천: "Incheon",
+	대구: "Daegu",
+	대전: "Daejeon",
+	광주: "Gwangju",
+	울산: "Ulsan",
+	제주: "Jeju City",
+	수원: "Suwon",
+};
+
 interface GeoResult {
 	latitude: number;
 	longitude: number;
@@ -29,7 +41,7 @@ interface CurrentWeather {
 
 class CityNotFoundError extends Error {
 	constructor(city: string) {
-		super(`City not found: ${city}`);
+		super(`도시를 찾을 수 없습니다: ${city}`);
 		this.name = "CityNotFoundError";
 	}
 }
@@ -49,7 +61,7 @@ function isRetryable(err: unknown): boolean {
 
 // --- Default fetcher (Node https, IPv4 forced) ---
 
-function httpsGet(url: string): Promise<FetchResponse> {
+function httpsGet(url: string, timeoutMs = 8000): Promise<FetchResponse> {
 	return new Promise((resolve, reject) => {
 		const parsed = new URL(url);
 		const req = https.request(
@@ -75,6 +87,10 @@ function httpsGet(url: string): Promise<FetchResponse> {
 				res.on("error", reject);
 			},
 		);
+		req.setTimeout(timeoutMs, () => {
+			req.destroy();
+			reject(new Error(`Request timed out after ${timeoutMs}ms`));
+		});
 		req.on("error", reject);
 		req.end();
 	});
@@ -100,15 +116,21 @@ function describeWeather(code: number): string {
 	return WEATHER_DESCRIPTIONS[code] ?? `날씨 코드 ${code}`;
 }
 
+function normalizeCityName(city: string): string {
+	const trimmed = city.trim();
+	return CITY_ALIASES[trimmed] ?? trimmed;
+}
+
 // --- Core execution ---
 
 export async function executeGetWeather(
 	input: { city: string },
 	fetcher: Fetcher = httpsGet,
 ): Promise<string> {
+	const city = normalizeCityName(input.city);
 	const geoUrl =
 		`https://geocoding-api.open-meteo.com/v1/search` +
-		`?name=${encodeURIComponent(input.city)}&count=1&language=en&format=json`;
+		`?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
 
 	const geoRes = await fetcher(geoUrl);
 	if (!geoRes.ok)
@@ -120,7 +142,9 @@ export async function executeGetWeather(
 	const geoData = (await geoRes.json()) as { results?: GeoResult[] };
 	if (!geoData.results?.length) throw new CityNotFoundError(input.city);
 
-	const { latitude, longitude, name, country } = geoData.results[0];
+	const location = geoData.results[0];
+	if (!location) throw new CityNotFoundError(input.city);
+	const { latitude, longitude, name, country } = location;
 
 	const weatherUrl =
 		`https://api.open-meteo.com/v1/forecast` +
@@ -198,8 +222,12 @@ const getWeatherTool: Tool = {
 			},
 		},
 	},
-	execute: (input: Record<string, unknown>) =>
-		executeGetWeather({ city: (input.city as string) ?? "" }),
+	execute: async (input: Record<string, unknown>) => {
+		if (typeof input.city !== "string" || !input.city.trim()) {
+			throw new Error("도시 이름을 입력해주세요");
+		}
+		return executeGetWeatherWithRetry({ city: input.city });
+	},
 };
 
 export { getWeatherTool };

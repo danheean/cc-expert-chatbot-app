@@ -3,9 +3,16 @@ import { VllmService } from '../services/vllm';
 import { messageHistory } from '../services/messageHistory';
 import { Message } from '../types';
 import { DEFAULT_SYSTEM_PROMPT } from '../config/systemPrompt';
+import { ToolOrchestrator } from '../services/toolOrchestrator';
+import { calculatorTool } from '../tools/calculator';
+import { getCurrentTimeTool } from '../tools/getCurrentTime';
+import { getWeatherTool } from '../tools/getWeather';
 
 const router = Router();
 const vllmService = new VllmService();
+vllmService.setToolOrchestrator(
+  new ToolOrchestrator([getCurrentTimeTool, getWeatherTool, calculatorTool]),
+);
 
 router.post('/', async (req: Request, res: Response) => {
   const { sessionId, message } = req.body as { sessionId?: string; message?: string };
@@ -50,10 +57,22 @@ router.post('/', async (req: Request, res: Response) => {
           sendEvent('text', { text: event.text });
           break;
         case 'tool_use_start':
-          sendEvent('tool_start', { toolName: event.toolName, toolUseId: event.toolUseId });
+          sendEvent('tool_start', {
+            toolName: event.toolName,
+            toolId: event.toolUseId,
+            toolUseId: event.toolUseId,
+          });
           break;
         case 'tool_result':
-          sendEvent('tool_result', { toolResult: event.toolResult });
+          sendEvent('tool_result', {
+            toolId: event.toolUseId,
+            toolUseId: event.toolUseId,
+            toolResult: event.toolResult,
+            toolStatus: event.toolStatus,
+          });
+          break;
+        case 'error':
+          sendEvent('error', { message: event.error });
           break;
         case 'message_complete':
           if (assistantText) {

@@ -4,6 +4,11 @@ import { messageHistory } from '../services/messageHistory';
 
 const router = Router();
 
+function getSessionId(req: Request): string | undefined {
+  const { id } = req.params;
+  return typeof id === 'string' ? id : undefined;
+}
+
 router.post('/', (req: Request, res: Response) => {
   const { id, title, metadata } = req.body as {
     id?: string;
@@ -11,7 +16,11 @@ router.post('/', (req: Request, res: Response) => {
     metadata?: Record<string, unknown>;
   };
 
-  const session = sessionManager.create({ id, title, metadata });
+  const session = sessionManager.create({
+    ...(id !== undefined && { id }),
+    ...(title !== undefined && { title }),
+    ...(metadata !== undefined && { metadata }),
+  });
   res.status(201).json(session);
 });
 
@@ -20,7 +29,12 @@ router.get('/', (_req: Request, res: Response) => {
 });
 
 router.get('/:id', (req: Request, res: Response) => {
-  const session = sessionManager.get(req.params.id);
+  const id = getSessionId(req);
+  if (!id) {
+    res.status(400).json({ error: { message: '세션 ID가 필요합니다.' } });
+    return;
+  }
+  const session = sessionManager.get(id);
   if (!session) {
     res.status(404).json({ error: { message: '세션을 찾을 수 없습니다.' } });
     return;
@@ -29,12 +43,20 @@ router.get('/:id', (req: Request, res: Response) => {
 });
 
 router.put('/:id', (req: Request, res: Response) => {
+  const id = getSessionId(req);
+  if (!id) {
+    res.status(400).json({ error: { message: '세션 ID가 필요합니다.' } });
+    return;
+  }
   const { title, metadata } = req.body as {
     title?: string;
     metadata?: Record<string, unknown>;
   };
 
-  const session = sessionManager.update(req.params.id, { title, metadata });
+  const session = sessionManager.update(id, {
+    ...(title !== undefined && { title }),
+    ...(metadata !== undefined && { metadata }),
+  });
   if (!session) {
     res.status(404).json({ error: { message: '세션을 찾을 수 없습니다.' } });
     return;
@@ -43,31 +65,46 @@ router.put('/:id', (req: Request, res: Response) => {
 });
 
 router.delete('/:id', (req: Request, res: Response) => {
-  const deleted = sessionManager.delete(req.params.id);
+  const id = getSessionId(req);
+  if (!id) {
+    res.status(400).json({ error: { message: '세션 ID가 필요합니다.' } });
+    return;
+  }
+  const deleted = sessionManager.delete(id);
   if (!deleted) {
     res.status(404).json({ error: { message: '세션을 찾을 수 없습니다.' } });
     return;
   }
-  messageHistory.delete(req.params.id);
+  messageHistory.delete(id);
   res.status(204).send();
 });
 
 router.get('/:id/messages', (req: Request, res: Response) => {
-  const session = sessionManager.get(req.params.id);
+  const id = getSessionId(req);
+  if (!id) {
+    res.status(400).json({ error: { message: '세션 ID가 필요합니다.' } });
+    return;
+  }
+  const session = sessionManager.get(id);
   if (!session) {
     res.status(404).json({ error: { message: '세션을 찾을 수 없습니다.' } });
     return;
   }
-  res.json(messageHistory.get(req.params.id));
+  res.json(messageHistory.get(id));
 });
 
 router.delete('/:id/messages', (req: Request, res: Response) => {
-  const session = sessionManager.get(req.params.id);
+  const id = getSessionId(req);
+  if (!id) {
+    res.status(400).json({ error: { message: '세션 ID가 필요합니다.' } });
+    return;
+  }
+  const session = sessionManager.get(id);
   if (!session) {
     res.status(404).json({ error: { message: '세션을 찾을 수 없습니다.' } });
     return;
   }
-  messageHistory.clear(req.params.id);
+  messageHistory.clear(id);
   res.status(204).send();
 });
 

@@ -33,7 +33,7 @@ describe("MessageList", () => {
 	it("메시지가 없을 때 빈 상태를 표시한다", () => {
 		render(<MessageList messages={[]} />);
 
-		expect(screen.getByText(/대화를 시작/)).toBeInTheDocument();
+		expect(screen.queryAllByRole("article")).toHaveLength(0);
 	});
 
 	it("사용자와 AI 메시지에 다른 스타일을 적용한다", () => {
@@ -42,7 +42,7 @@ describe("MessageList", () => {
 		const userMessage = screen.getByText("Hello").closest("div");
 		const assistantMessage = screen.getByText("Hi there!").closest("div");
 
-		expect(userMessage).toHaveClass("bg-primary");
+		expect(userMessage).toHaveClass("bg-[#FEE500]");
 		expect(assistantMessage).toHaveClass("bg-secondary");
 	});
 
@@ -56,9 +56,17 @@ describe("MessageList", () => {
 	});
 
 	it("isLoading이 true일 때 로딩 인디케이터를 표시한다", () => {
-		render(<MessageList messages={mockMessages} isLoading={true} />);
+		render(
+			<MessageList
+				messages={[
+					mockMessages[0],
+					{ ...mockMessages[1], content: "" },
+				]}
+				isLoading={true}
+			/>,
+		);
 
-		expect(screen.getByText(/응답 생성 중/)).toBeInTheDocument();
+		expect(screen.getByRole("status", { name: "응답 생성 중" })).toBeInTheDocument();
 	});
 
 	it('toolCalls가 있는 메시지에서 ToolResult를 렌더링한다', () => {
@@ -83,4 +91,31 @@ describe("MessageList", () => {
     render(<MessageList messages={messages} isLoading={false} />);
     expect(screen.queryByText('날씨 조회')).toBeNull();
   });
+
+	it("어시스턴트 메시지는 ToolResult를 답변 본문 위에 렌더링한다", () => {
+		const messages = [
+			{
+				id: "1",
+				role: "assistant" as const,
+				content: "계산 결과는 579입니다.",
+				timestamp: new Date(),
+				toolCalls: [
+					{
+						id: "tc1",
+						name: "calculator",
+						input: { expression: "123 + 456" },
+						status: "success" as const,
+						result: "579",
+					},
+				],
+			},
+		];
+		render(<MessageList messages={messages} isLoading={false} />);
+
+		const toolLabel = screen.getByText("계산기");
+		const answer = screen.getByText("계산 결과는 579입니다.");
+		expect(
+			toolLabel.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING,
+		).toBeTruthy();
+	});
 });

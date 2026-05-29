@@ -11,6 +11,7 @@ const defaultProps = {
   onSelectSession: vi.fn(),
   onNewChat: vi.fn(),
   onDeleteSession: vi.fn(),
+  onRenameSession: vi.fn(),
 };
 
 describe('Layout', () => {

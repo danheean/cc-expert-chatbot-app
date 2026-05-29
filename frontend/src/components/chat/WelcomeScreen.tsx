@@ -6,19 +6,19 @@ const CARDS = [
 	{
 		label: "오늘의 시간",
 		sub: "정확한 시간 확인",
-		message: "지금 몇 시야?",
+		message: "Asia/Seoul 기준 현재 날짜와 시간을 알려줘.",
 		image: "/welcome-time.png",
 	},
 	{
 		label: "현재 날씨",
 		sub: "실시간 날씨 정보",
-		message: "오늘 날씨 어때?",
+		message: "서울의 현재 날씨를 알려줘.",
 		image: "/welcome-weather.png",
 	},
 	{
 		label: "편리한 계산기",
 		sub: "쉽고 빠른 계산",
-		message: "123 + 456 계산해줘",
+		message: "123 + 456을 계산해줘.",
 		image: "/welcome-calculator.png",
 	},
 ];

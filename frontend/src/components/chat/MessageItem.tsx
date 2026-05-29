@@ -11,18 +11,22 @@ export function MessageItem({ message }: MessageItemProps) {
 	const isUser = message.role === "user";
 
 	return (
-		<article className={cn("flex flex-col gap-1", isUser ? "items-end" : "items-start")}>
-			<div className={cn("flex items-center gap-1.5", isUser && "flex-row-reverse")}>
+		<article className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}>
+			<div className={cn("flex items-center gap-2", isUser && "flex-row-reverse")}>
 				<span className="text-base leading-none select-none" aria-hidden>
 					{isUser ? "🙂" : "🤖"}
 				</span>
-				<span className="text-xs font-semibold text-foreground">
+				<span className="text-sm font-semibold text-foreground">
 					{isUser ? "주레피" : "AI 어시스턴트"}
 				</span>
-				<span className="text-xs text-muted-foreground">
+				<span className="text-sm text-muted-foreground">
 					{message.timestamp.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
 				</span>
 			</div>
+			{!isUser &&
+				message.toolCalls?.map((tc: ToolCall) => (
+					<ToolResult key={tc.id} toolCall={tc} />
+				))}
 			<div
 				className={cn(
 					"max-w-[75%] rounded-block px-4 py-2.5 text-sm",
@@ -37,9 +41,6 @@ export function MessageItem({ message }: MessageItemProps) {
 					<MarkdownRenderer content={message.content} />
 				)}
 			</div>
-			{message.toolCalls?.map((tc: ToolCall) => (
-				<ToolResult key={tc.id} toolCall={tc} />
-			))}
 		</article>
 	);
 }

@@ -137,6 +137,73 @@ describe("useChat 훅", () => {
 		expect(assistantMessage.toolCalls?.[0].result).toBe("서울: 맑음, 15도");
 	});
 
+	it("백엔드 toolUseId 형태의 도구 결과를 같은 도구 호출에 매칭한다", async () => {
+		(streamChat as any).mockImplementation(
+			async (_sessionId: string, _message: string, onEvent: any) => {
+				onEvent({
+					type: "tool_start",
+					toolUseId: "tool-1",
+					toolName: "calculator",
+				});
+				onEvent({
+					type: "tool_result",
+					toolUseId: "tool-1",
+					toolResult: "579",
+					toolStatus: "success",
+				});
+				onEvent({ type: "text", content: "123 + 456은 579입니다." });
+				onEvent({ type: "done" });
+			},
+		);
+
+		const { result } = renderHook(() => useChat("session-1"));
+
+		await act(async () => {
+			await result.current.sendMessage("123 + 456을 계산해줘.");
+		});
+
+		const assistantMessage = result.current.messages[1];
+		expect(assistantMessage.toolCalls).toHaveLength(1);
+		expect(assistantMessage.toolCalls?.[0]).toMatchObject({
+			id: "tool-1",
+			name: "calculator",
+			status: "success",
+			result: "579",
+		});
+	});
+
+	it("도구 결과가 error status이면 실패 상태로 표시한다", async () => {
+		(streamChat as any).mockImplementation(
+			async (_sessionId: string, _message: string, onEvent: any) => {
+				onEvent({
+					type: "tool_start",
+					toolId: "tool-1",
+					toolName: "get_weather",
+				});
+				onEvent({
+					type: "tool_result",
+					toolId: "tool-1",
+					toolResult: "Error: City not found: 없는도시",
+					toolStatus: "error",
+				});
+				onEvent({ type: "done" });
+			},
+		);
+
+		const { result } = renderHook(() => useChat("session-1"));
+
+		await act(async () => {
+			await result.current.sendMessage("없는도시의 현재 날씨를 알려줘.");
+		});
+
+		expect(result.current.messages[1].toolCalls?.[0]).toMatchObject({
+			id: "tool-1",
+			name: "get_weather",
+			status: "error",
+			result: "Error: City not found: 없는도시",
+		});
+	});
+
 	it("에러를 처리한다", async () => {
 		(streamChat as any).mockImplementation(
 			async (_sessionId: string, _message: string, onEvent: any) => {
