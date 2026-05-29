@@ -11,7 +11,7 @@ function App() {
   const { messages, isLoading, error, sendMessage: originalSendMessage } = useChat(
     currentSession?.id ?? "",
   );
-  const { theme, toggleTheme } = useTheme();
+  const { theme, cycleTheme } = useTheme();
 
   const handleSendMessage = useCallback(
     (message: string) => {
@@ -38,7 +38,7 @@ function App() {
         onNewChat={createSession}
         onDeleteSession={deleteSession}
         theme={theme}
-        onToggleTheme={toggleTheme}
+        onToggleTheme={cycleTheme}
       />
     </ErrorBoundary>
   );

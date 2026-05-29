@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
 		return (
 			<div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
-				<p className="text-gray-700">문제가 발생했습니다</p>
+				<p className="text-foreground">문제가 발생했습니다</p>
 				<Button onClick={() => window.location.reload()}>
 					새로고침
 				</Button>

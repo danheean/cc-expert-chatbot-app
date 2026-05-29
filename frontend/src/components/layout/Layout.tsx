@@ -30,8 +30,8 @@ export function Layout({
 	onSelectSession,
 	onNewChat,
 	onDeleteSession,
-	theme: _theme,
-	onToggleTheme: _onToggleTheme,
+	theme,
+	onToggleTheme,
 }: LayoutProps) {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [errorDismissed, setErrorDismissed] = useState(false);
@@ -54,6 +54,8 @@ export function Layout({
 			<Header
 				onMenuClick={() => setSidebarOpen((prev) => !prev)}
 				sessionTitle={currentSession?.title}
+				theme={theme}
+				onCycleTheme={onToggleTheme}
 			/>
 
 			<div className="relative flex flex-1 overflow-hidden">

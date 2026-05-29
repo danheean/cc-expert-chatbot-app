@@ -26,7 +26,7 @@ export function Sidebar({
 	onDeleteSession,
 }: SidebarProps) {
 	return (
-		<aside className="flex w-64 flex-col border-r bg-white">
+		<aside className="flex w-64 flex-col border-r bg-background">
 			<div className="p-3">
 				<Button onClick={onNewChat} className="w-full">
 					새 대화
@@ -36,14 +36,14 @@ export function Sidebar({
 			<ScrollArea className="flex-1">
 				<nav className="px-2 py-1">
 					{sessions.length === 0 ? (
-						<p className="py-4 text-center text-sm text-gray-400">대화 없음</p>
+						<p className="py-4 text-center text-sm text-muted-foreground">대화 없음</p>
 					) : (
 						sessions.map((session) => (
 							<div key={session.id} className="flex items-center gap-1">
 								<button
 									type="button"
 									onClick={() => onSelectSession(session.id)}
-									className={`flex-1 truncate rounded-md px-3 py-2 text-left text-sm hover:bg-gray-100 ${
+									className={`flex-1 truncate rounded-md px-3 py-2 text-left text-sm hover:bg-accent ${
 										session.id === currentSessionId ? "bg-accent font-medium" : ""
 									}`}
 								>

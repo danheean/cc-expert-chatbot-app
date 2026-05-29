@@ -17,7 +17,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
 
 	if (messages.length === 0 && !isLoading) {
 		return (
-			<div className="flex flex-1 items-center justify-center text-gray-400">
+			<div className="flex flex-1 items-center justify-center text-muted-foreground">
 				대화를 시작해보세요
 			</div>
 		);
@@ -30,7 +30,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
 					<MessageItem key={message.id} message={message} />
 				))}
 				{isLoading && (
-					<div className="text-gray-400">응답 생성 중...</div>
+					<div className="text-muted-foreground">응답 생성 중...</div>
 				)}
 				<div ref={bottomRef} />
 			</div>

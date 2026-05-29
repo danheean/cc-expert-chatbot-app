@@ -26,7 +26,7 @@ function resolveMessage(message: string): string {
 
 export function ErrorMessage({ message, onRetry, onDismiss }: ErrorMessageProps) {
 	return (
-		<div className="flex items-start gap-3 rounded-md bg-red-50 p-4 text-red-800 ring-1 ring-red-300">
+		<div className="flex items-start gap-3 rounded-md bg-red-50 p-4 text-red-800 ring-1 ring-red-200 dark:bg-red-950/30 dark:text-red-300 dark:ring-red-800">
 			<p className="flex-1 text-sm">{resolveMessage(message)}</p>
 			<div className="flex shrink-0 gap-2">
 				{onRetry && (
@@ -43,7 +43,7 @@ export function ErrorMessage({ message, onRetry, onDismiss }: ErrorMessageProps)
 						variant="ghost"
 						size="sm"
 						onClick={onDismiss}
-						className="text-red-700 hover:text-red-800"
+						className="text-red-700 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
 					>
 						닫기
 					</Button>
