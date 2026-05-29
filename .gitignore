@@ -10,3 +10,4 @@ coverage/
 .vite/
 .playwright-mcp/
 docs/memo.md
+tmp/
