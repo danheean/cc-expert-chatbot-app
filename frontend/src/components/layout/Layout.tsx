@@ -4,6 +4,7 @@ import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { MessageList } from "../chat/MessageList";
 import { MessageInput } from "../chat/MessageInput";
+import { WelcomeScreen } from "../chat/WelcomeScreen";
 import { ErrorMessage } from "../ErrorMessage";
 import { cn } from "@/lib/utils";
 
@@ -109,7 +110,11 @@ export function Layout({
 							/>
 						</div>
 					)}
-					<MessageList messages={messages} isLoading={isLoading} />
+					{messages.length === 0 && !isLoading ? (
+						<WelcomeScreen onSendMessage={onSendMessage} />
+					) : (
+						<MessageList messages={messages} isLoading={isLoading} />
+					)}
 					<MessageInput onSend={onSendMessage} isLoading={isLoading} />
 				</div>
 			</div>

@@ -15,14 +15,6 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages, isLoading]);
 
-	if (messages.length === 0 && !isLoading) {
-		return (
-			<div className="flex flex-1 items-center justify-center text-muted-foreground">
-				대화를 시작해보세요
-			</div>
-		);
-	}
-
 	const lastMessage = messages[messages.length - 1];
 	const showTypingIndicator =
 		isLoading && (!lastMessage || (lastMessage.role === "assistant" && lastMessage.content === ""));
