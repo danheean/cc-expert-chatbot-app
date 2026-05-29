@@ -54,7 +54,7 @@ export function Sidebar({
 			style={{ backgroundColor: "hsl(var(--background))" }}
 		>
 			<div className="p-3">
-				<Button onClick={onNewChat} className="w-full gap-2">
+				<Button onClick={onNewChat} className="w-full gap-2 rounded-pill">
 					<PenLine className="h-4 w-4" />
 					새 대화
 				</Button>
