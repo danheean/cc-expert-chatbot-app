@@ -19,6 +19,8 @@ export function useChat(sessionId: string) {
     setIsLoading(false);
     setError(null);
 
+    if (!sessionId) return;
+
     const loadMessages = async () => {
       try {
         const response = await fetch(`/api/sessions/${sessionId}/messages`);
@@ -43,7 +45,10 @@ export function useChat(sessionId: string) {
   }, [sessionId]);
 
   const sendMessage = useCallback(
-    async (message: string) => {
+    async (message: string, overrideSessionId?: string) => {
+      const effectiveSessionId = overrideSessionId ?? sessionId;
+      if (!effectiveSessionId) return;
+
       abortControllerRef.current?.abort();
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -68,7 +73,7 @@ export function useChat(sessionId: string) {
 
       try {
         await streamChat(
-          sessionId,
+          effectiveSessionId,
           message,
           (event: SSEEvent) => {
             if (event.type === "text" && event.content !== undefined) {

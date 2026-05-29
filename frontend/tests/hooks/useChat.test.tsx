@@ -202,6 +202,40 @@ describe("useChat 훅", () => {
 		expect(result.current.messages).toEqual([]);
 	});
 
+	it("overrideSessionId를 제공하면 빈 sessionId를 무시하고 API를 호출한다", async () => {
+		(streamChat as any).mockImplementation(
+			async (sid: string, _msg: string, onEvent: any) => {
+				onEvent({ type: "done" });
+			},
+		);
+		const { result } = renderHook(() => useChat(""));
+
+		await act(async () => {
+			await result.current.sendMessage("안녕", "override-session-123");
+		});
+
+		expect(streamChat).toHaveBeenCalledWith(
+			"override-session-123",
+			"안녕",
+			expect.any(Function),
+			expect.anything(),
+		);
+		expect(result.current.messages[0].content).toBe("안녕");
+	});
+
+	it("sessionId가 빈 문자열이면 sendMessage가 API를 호출하지 않는다", async () => {
+		const { result } = renderHook(() => useChat(""));
+
+		await act(async () => {
+			await result.current.sendMessage("안녕");
+		});
+
+		const chatCall = mockFetch.mock.calls.find((call) => call[0] === "/api/chat");
+		expect(chatCall).toBeUndefined();
+		expect(result.current.messages).toHaveLength(0);
+		expect(result.current.error).toBeNull();
+	});
+
 	it("sessionId가 변경되면 백엔드에서 메시지를 로드한다", async () => {
 		const { result, rerender } = renderHook(
 			({ sessionId }) => useChat(sessionId),
