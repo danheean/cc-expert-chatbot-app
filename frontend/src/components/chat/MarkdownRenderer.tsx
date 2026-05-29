@@ -16,7 +16,7 @@ const components: Components = {
     if (isInline) {
       return (
         <code
-          className="bg-gray-200 text-red-600 px-1 py-0.5 rounded text-sm font-mono"
+          className="bg-muted text-destructive px-1 py-0.5 rounded text-sm font-mono"
           {...props}
         >
           {children}
@@ -43,7 +43,7 @@ const components: Components = {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 underline hover:text-blue-800"
+        className="text-primary underline hover:text-primary/80"
         {...props}
       >
         {children}
@@ -60,25 +60,25 @@ const components: Components = {
   li: ({ children }) => <li className="ml-2">{children}</li>,
 
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-gray-400 pl-4 my-2 text-gray-600 italic">
+    <blockquote className="border-l-4 border-border pl-4 my-2 text-muted-foreground italic">
       {children}
     </blockquote>
   ),
 
   table: ({ children }) => (
     <div className="overflow-x-auto my-2">
-      <table className="min-w-full border border-gray-300 text-sm">{children}</table>
+      <table className="min-w-full border border-border text-sm">{children}</table>
     </div>
   ),
-  thead: ({ children }) => <thead className="bg-gray-100">{children}</thead>,
+  thead: ({ children }) => <thead className="bg-muted">{children}</thead>,
   th: ({ children }) => (
-    <th className="border border-gray-300 px-3 py-2 text-left font-semibold">{children}</th>
+    <th className="border border-border px-3 py-2 text-left font-semibold">{children}</th>
   ),
-  td: ({ children }) => <td className="border border-gray-300 px-3 py-2">{children}</td>,
+  td: ({ children }) => <td className="border border-border px-3 py-2">{children}</td>,
 
   p: ({ children }) => <p className="my-1 leading-relaxed">{children}</p>,
 
-  hr: () => <hr className="my-4 border-gray-300" />,
+  hr: () => <hr className="my-4 border-border" />,
 };
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
